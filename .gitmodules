@@ -1,0 +1,3 @@
+[submodule "projects/default"]
+	path = projects/default
+	url = https://github.com/ianhubnet/csk-app-default
