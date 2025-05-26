@@ -1,0 +1,65 @@
+name: Update Submodules
+
+on:
+  repository_dispatch:
+    types: [update-submodules]
+
+concurrency:
+  group: update-submodules
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo with submodules
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.CSK_PAT }}
+          submodules: true
+
+      - name: Set up bash shell (fix missing commands)
+        shell: bash
+        run: |
+          echo "Ensuring shell is bash with core utils available"
+
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global user.name "CSK Bot"
+          git config --global user.email "skeleton@ianhub.net"
+
+      - name: Add or update submodule
+        shell: bash
+        run: |
+          REPO="${{ github.event.client_payload.repo }}"
+          NAME="${{ github.event.client_payload.name }}"
+
+          echo "Name: $NAME"
+          echo "Repo: $REPO"
+
+          STRIP="${{ github.event.client_payload.strip }}"
+          if [ -n "$STRIP" ]; then
+            DIR_NAME="${NAME#"$STRIP"}"
+          else
+            DIR_NAME="${NAME##*-}"  # fallback to last part after dash
+          fi
+
+          SUB_PATH="projects/$DIR_NAME"
+
+          echo "Submodule path: $SUB_PATH"
+
+          if [ -d "$SUB_PATH" ]; then
+            echo "✅ Submodule exists. Updating..."
+            git submodule update --remote "$SUB_PATH"
+          else
+            echo "➕ Submodule doesn't exist. Adding it..."
+            mkdir -p "$(dirname "$SUB_PATH")"
+            git submodule add "https://github.com/$REPO" "$SUB_PATH"
+            git config -f .git/config submodule."$SUB_PATH".url "https://github.com/$REPO"
+          fi
+
+          git add "$SUB_PATH"
+          git commit -m "Auto-update/add submodule: ${NAME:-unknown}" || echo "Nothing to commit"
+          git push

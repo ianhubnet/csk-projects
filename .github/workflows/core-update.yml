@@ -1,0 +1,42 @@
+name: Dispatch core update to all apps
+
+on:
+  repository_dispatch:
+    types: [core-update]
+
+jobs:
+  dispatch_core_update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout csk-projects repository with submodules
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.CSK_PAT }}
+          submodules: true
+          fetch-depth: 0  # Needed to read full git history and config
+
+      - name: Dispatch core-update event to each app repo
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.CSK_PAT }}
+        run: |
+          # Loop through all submodules defined in .gitmodules
+          git config --file .gitmodules --get-regexp 'submodule\..*\.path' | while read -r key path; do
+            # Extract submodule name (between 'submodule.' and '.path')
+            submodule_name=$(echo "$key" | cut -d '.' -f 2)
+
+            # Get the URL for this submodule
+            url=$(git config --file .gitmodules --get "submodule.$submodule_name.url")
+
+            # Parse repo owner/name from URL (handles HTTPS and SSH URLs)
+            repo=$(echo "$url" | sed -E 's#(git@github.com:|https://github.com/)([^/]+/[^/]+)(\.git)?#\2#')
+
+            echo "Dispatching core-update event to $repo"
+
+            # Call GitHub API to dispatch the event
+            curl -s -X POST \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$repo/dispatches" \
+              -d '{"event_type":"core-update"}'
+          done

@@ -1,0 +1,1 @@
+# CI Skeleton - Projects Hub
