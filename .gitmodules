@@ -1,3 +1,6 @@
 [submodule "projects/default"]
 	path = projects/default
 	url = https://github.com/ianhubnet/csk-app-default
+[submodule "projects/ybs"]
+	path = projects/ybs
+	url = https://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@github.com/ianhubnet/csk-app-ybs
