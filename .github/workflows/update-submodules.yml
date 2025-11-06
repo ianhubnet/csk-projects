@@ -40,6 +40,13 @@ jobs:
           git config user.name "ianhub-bot"
           git config user.email "bot@ianhub.net"
 
+      - name: Debug submodules
+        run: |
+          echo "=== .gitmodules ==="
+          cat .gitmodules || echo "No .gitmodules"
+          echo "=== Submodule status ==="
+          git submodule status --recursive || true
+
       - name: Add or Update Submodule
         shell: bash
         run: |
