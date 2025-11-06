@@ -13,11 +13,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo with submodules
+      - name: Checkout repo (no submodules yet)
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.CSK_PAT }}
-          submodules: true
+          submodules: false
+
+      - name: Init first-level submodules only
+        run: |
+          git submodule update --init --depth 1 -- projects/*
+
+      - name: Recursively update nested submodules safely
+        run: |
+          git submodule foreach --recursive '
+            echo "➡️ Updating $path"
+            git submodule update --init --depth 1 || true
+          '
 
       - name: Set up Bash (ensure shell with coreutils)
         shell: bash
