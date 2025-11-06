@@ -13,17 +13,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo (no submodules yet)
+      - name: Checkout main repo (no submodules yet)
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.CSK_PAT }}
           submodules: false
 
-      - name: Init first-level submodules only
+      - name: Configure Git identity
+        run: |
+          git config user.name "ianhub-bot"
+          git config user.email "bot@ianhub.net"
+          git config --global url."https://${{ secrets.CSK_PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Init first-level submodules
         run: |
           git submodule update --init --depth 1 -- projects/*
 
-      - name: Recursively update nested submodules safely
+      - name: Recursively init nested submodules
         run: |
           git submodule foreach --recursive '
             echo "➡️ Updating $path"
