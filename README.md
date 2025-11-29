@@ -43,9 +43,8 @@ Every project must define:
 
 ## 🌍 Related Repositories
 
-* [`csk-core`](https://github.com/ianhubnet) — Core framework (Private)
-* [`csk-packages`](https://github.com/ianhubnet/csk-packages) — Modules, plugins, and themes (Private)
-* [`csk-lang-english`](https://github.com/ianhubnet/csk-lang-english) — Default translation (Public)
+* [`csk-core`](https://github.com/ianhubnet) — Core framework *(Private)*
+* [`csk-packages`](https://github.com/ianhubnet/csk-packages) — Modules, plugins, and themes *(Public index)*
 
 ---
 
