@@ -58,20 +58,10 @@ jobs:
         run: |
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
-          STRIP="${{ github.event.client_payload.strip }}"
+          SUB_PATH="projects/$DIR_NAME"
 
           echo "📦 Name: $NAME"
           echo "🔗 Repo: $REPO"
-          echo "✂️ Strip: $STRIP"
-
-          # Determine the local submodule directory name
-          if [ -n "$STRIP" ]; then
-            DIR_NAME="${NAME#"$STRIP"}"
-          else
-            DIR_NAME="${NAME##*-}" # fallback to last part after dash
-          fi
-
-          SUB_PATH="projects/$DIR_NAME"
           echo "📂 Submodule path: $SUB_PATH"
 
           if [ -d "$SUB_PATH" ]; then
