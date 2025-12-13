@@ -151,7 +151,7 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASS }}
-          local-dir: .
+          local-dir: ./
           server-dir: ${{ secrets.FTP_PATH }}
           exclude: |
             **/*
