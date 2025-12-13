@@ -10,6 +10,7 @@ concurrency:
 
 jobs:
   update:
+    name: Update Project Submodule
     runs-on: ubuntu-latest
 
     steps:
