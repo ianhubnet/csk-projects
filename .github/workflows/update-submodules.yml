@@ -14,86 +14,74 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout main repo (no submodules yet)
-        uses: actions/checkout@v3
+      - name: Checkout repo with submodules
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.CSK_PAT }}
           submodules: false
 
       - name: Configure Git identity
-        run: |
-          git config user.name "ianhub-bot"
-          git config user.email "bot@ianhub.net"
-          git config --global url."https://${{ secrets.CSK_PAT }}@github.com/".insteadOf "https://github.com/"
-
-      - name: Init first-level submodules
-        run: |
-          git submodule update --init --depth 1 -- projects/*
-
-      - name: Recursively init nested submodules
-        run: |
-          git submodule foreach --recursive '
-            echo "➡️ Updating $path"
-            git submodule update --init --depth 1 || true
-          '
-
-      - name: Set up Bash (ensure shell with coreutils)
-        shell: bash
-        run: echo "Shell ready with core utilities"
-
-      - name: Configure Git identity
         shell: bash
         run: |
           git config user.name "ianhub-bot"
           git config user.email "bot@ianhub.net"
-
-      - name: Debug submodules
-        run: |
-          echo "=== .gitmodules ==="
-          cat .gitmodules || echo "No .gitmodules"
-          echo "=== Submodule status ==="
-          git submodule status --recursive || true
 
       - name: Add or Update Submodule
         shell: bash
         run: |
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
-          SUB_PATH="projects/$DIR_NAME"
+          if [ -z "$REPO" ] || [ -z "$NAME" ]; then
+            echo "❌ Missing required payload fields."
+            exit 1
+          fi
 
+          SUB_PATH="projects/$NAME"
           echo "📦 Name: $NAME"
           echo "🔗 Repo: $REPO"
           echo "📂 Submodule path: $SUB_PATH"
 
-          if [ -d "$SUB_PATH" ]; then
-            echo "✅ Submodule exists. Updating..."
+          # Check if submodule exists
+          if git config -f .gitmodules --get submodule."$SUB_PATH".url >/dev/null; then
+            echo "🔍 Submodule exists. Verifying repository URL..."
+
+            # Normalize existing and expected URLs
+            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url \
+              | sed -E 's|https://.*@github.com/|https://github.com/|' \
+              | sed 's|\.git$||')
+
+            EXPECTED_URL=$(echo "https://github.com/$REPO" | sed 's|\.git$||')
+
+            if [ "$EXISTING_URL" != "$EXPECTED_URL" ]; then
+              echo "❌ Repository mismatch detected!"
+              exit 1
+            fi
+
+            echo "✅ Repository verified. Updating..."
             git submodule update --remote "$SUB_PATH"
           else
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$SUB_PATH")"
-            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
 
-            # Cleanup the URL from .gitmodules
+            # Add using token for authentication, then normalize URL
+            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
-            sed -i "s|https://.*@github.com/|https://github.com/|g" .gitmodules
             git submodule sync
           fi
 
-          git add "$SUB_PATH"
-
-          # Always add submodule path and .gitmodules in case it was added/changed
+          # Stage submodule changes
           git add .gitmodules "$SUB_PATH"
 
-          # Fetch latest remote and merge only if nothing staged
+          # Pull latest main if nothing staged
           git fetch origin main
-
           if git diff --cached --quiet; then
             echo "🟢 No staged changes. Safe to pull..."
-            git merge --ff-only origin/main
+            git merge --ff-only origin/main || true
           else
             echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
           fi
 
+          # Commit if needed
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit."
           else
@@ -101,6 +89,7 @@ jobs:
             git commit -m "Auto-update/add submodule: ${NAME:-unknown}"
           fi
 
+          # Push with retry
           echo "🚀 Pushing to origin (with retry)..."
           for i in 1 2 3; do
             git push && break || {
@@ -129,7 +118,7 @@ jobs:
           curl -L -H "Authorization: token ${{ secrets.CSK_PAT }}" \
             "$API_URL" > latest.json
 
-          ZIP_URL=$(jq -r '.assets[0].browser_download_url' latest.json)
+          ZIP_URL=$(jq -r '.assets[] | select(.name | endswith(".zip")) | .browser_download_url' latest.json | head -n 1)
           VERSION=$(jq -r '.tag_name' latest.json)
 
           echo "📦 Version: $VERSION"
@@ -166,6 +155,7 @@ jobs:
       #     RPC_VER: ${{ secrets.RPC_VER }}
       #   run: |
       #     REPO="${{ github.event.client_payload.repo }}"
+      #     REPO_URL="https://github.com/$REPO"
       #     TYPE="app"
       #     PACKAGE="${{ github.event.client_payload.name }}"
       #     OWNER="${REPO%%/*}"
@@ -181,6 +171,7 @@ jobs:
       #         \"params\": {
       #           \"type\": \"$TYPE\",
       #           \"package\": \"$PACKAGE\",
+      #           \"repo\": \"$REPO_URL\",
       #           \"owner\": \"$OWNER\",
       #           \"name\": \"$NAME\",
       #           \"version\": \"${{ env.VERSION }}\"
