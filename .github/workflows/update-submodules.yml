@@ -146,6 +146,7 @@ jobs:
           password: ${{ secrets.FTP_PASS }}
           local-dir: ./
           server-dir: ${{ secrets.FTP_PATH }}
+          state-name: ".sync-${{ needs.update.outputs.name }}-state.json"
           exclude: |
             **/*
             !${{ env.ZIP }}
