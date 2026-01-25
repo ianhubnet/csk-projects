@@ -1,6 +1,6 @@
 # 🧱 CSK Projects
 
-This monorepo hosts all official **applications and projects** built using [CodeIgniter Skeleton (CSK)](https://github.com/ianhubnet).
+This monorepo hosts all official **applications and projects** built using [CiSkeleton (CSK)](https://github.com/ianhubnet).
 
 Each application is developed as a **standalone CSK app**, managed as a **Git submodule** for independent lifecycle and deployment.
 
@@ -23,8 +23,8 @@ projects/
 
 ## Automation
 Every project must define:
-- `CSK_STRIP` → prefix to remove (`csk-app-`).
-- `CSK_PAT` → personal access token for updates.
+- `CSK_NAME` variable → name of the project (e.g., `ianhub`).
+- `CSK_PAT` secret    → personal access token for communication.
 
 > 🪄 CSK automatically syncs project updates, keeping all related repositories aligned.
 
@@ -43,8 +43,9 @@ Every project must define:
 
 ## 🌍 Related Repositories
 
-* [`csk-core`](https://github.com/ianhubnet) — Core framework *(Private)*
-* [`csk-packages`](https://github.com/ianhubnet/csk-packages) — Modules, plugins, and themes *(Public index)*
+* [`csk-core`](https://github.com/ianhubnet) — Main CSK Framework *(Private)*
+* [`csk-common`](https://github.com/ianhubnet/csk-common) — CSK Shared Assets *(Public)*
+* [`csk-packages`](https://github.com/ianhubnet/csk-packages) — Modules, plugins, themes, and languages *(Public index)*
 
 ---
 
