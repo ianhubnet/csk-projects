@@ -31,11 +31,11 @@ Every project must define:
 ---
 
 ## Example
-| Project | Example Repo | CSK_STRIP | CSK_PAT | Added Under |
+| Project | Example Repo | CSK_PAT | Added Under |
 |---------|--------------|-----------|---------|-------------|
-| `default` | `csk-app-default` | `csk-app-` | `<secret>` | `projects/default` |
-| `ianhub` | `csk-app-ianhub` | `csk-app-` | `<secret>` | `projects/ianhub` |
-| `example` | `random-app-example` | `random-app-` | `<secret>` | `projects/example` |
+| `default` | `csk-app-default` | `<secret>` | `projects/default` |
+| `ianhub` | `csk-app-ianhub` | `<secret>` | `projects/ianhub` |
+| `example` | `random-app-example` | `<secret>` | `projects/example` |
 
 ---
 
